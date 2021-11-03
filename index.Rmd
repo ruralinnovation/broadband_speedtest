@@ -5,7 +5,7 @@ date: 11/2/21
 output: html_notebook
 ---
 
-Try to reproduce example functionality of [`examples/client.html`](examples/client.html):
+Try to reproduce example functionality of [`examples/client.html`](examples/client.html) *without* any external Web Worker scripts:
 
 
 ```{=html}
