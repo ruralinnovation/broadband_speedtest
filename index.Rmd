@@ -9,48 +9,95 @@ Try to reproduce example functionality of [`examples/client.html`](examples/clie
 
 
 ```{=html}
-<div id="server">server</div>
-<div id="download">download</div>
-<div id="upload">upload</div>
+<div id="server"></div>
+<div id="download"></div>
+<div id="upload"></div>
+
+<div id="server"></div>
+<div id="download"></div>
+<div id="upload"></div>
+
+<style type="text/css">
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0
+    }
+
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35
+    }
+
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124
+    }
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg)
+    }
+}
+</style>
+
+<div class="outside_container">
+  <div class="buttons_reverse">
+    <input id="test" type="button" name="test" value="Run Speed Test" class="submit_button" onclick="runSpeedTest(arguments);">
+    <svg id="CDB-LoaderIcon-spinner" viewBox="0 0 50 50" style="display:none; height: 40px; width: 40px; animation: rotate 1s linear infinite;">
+        <circle class="CDB-LoaderIcon-path" cx="25" cy="25" r="20" fill="none" style="stroke: #3c8dbc; stroke-linecap: round; animation: dash 3s ease-in-out infinite; stroke-width: 4px"></circle>
+    </svg>
+  </div>
+</div>
+
+
+<script id="worker1" type="javascript/worker">
+  // This script won't be parsed by JS engines because its type is javascript/worker.
+  self.onmessage = function(e) {
+    self.postMessage('msg from worker');
+  };
+  // Rest of your worker code goes here.
+</script>
+
+<script type="text/javascript">
+    var blob = new Blob([
+        document.querySelector('#worker1').textContent
+    ], { type: "text/javascript" })
+
+    // Note: window.webkitURL.createObjectURL() in Chrome 10+.
+    var worker = new Worker(window.URL.createObjectURL(blob));
+    worker.onmessage = function(e) {
+        console.log("Received: " + e.data);
+    }
+    worker.postMessage("hello"); // Start the worker.
+</script>
 
 <script src="https://speedtest-assets.s3.us-east-1.amazonaws.com/public/ndt7.min.js" type="text/javascript"></script>
 
-    <script id="worker1" type="javascript/worker">
-      // This script won't be parsed by JS engines because its type is javascript/worker.
-      self.onmessage = function(e) {
-        self.postMessage('msg from worker');
-      };
-      // Rest of your worker code goes here.
-    </script>
+<script id="download-worker" type="javascript/worker">
+  "undefined"==typeof WebSocket&&(global.WebSocket=require("isomorphic-ws"));const workerMain=function(e){"use strict";const n=e.data["///ndt/v7/download"],o=new WebSocket(n,"net.measurementlab.ndt.v7");let t=()=>(new Date).getTime();"undefined"!=typeof performance&&void 0!==performance.now&&(t=()=>performance.now()),downloadTest(o,postMessage,t)},downloadTest=function(e,n,o){e.onclose=function(){n({MsgType:"complete"})},e.onerror=function(e){n({MsgType:"error",Error:e})};let t=o(),s=t,a=0;e.onopen=function(){t=o(),s=t,a=0,n({MsgType:"start",Data:{ClientStartTime:t}})},e.onmessage=function(e){a+=void 0!==e.data.size?e.data.size:e.data.length;const r=o();r-s>250&&(n({MsgType:"measurement",ClientData:{ElapsedTime:(r-t)/1e3,NumBytes:a,MeanClientMbps:a/(r-t)*.008},Source:"client"}),s=r),"string"==typeof e.data&&n({MsgType:"measurement",ServerMessage:e.data,Source:"server"})}};"undefined"!=typeof self?self.onmessage=workerMain:void 0!==this?this.onmessage=workerMain:"undefined"!=typeof onmessage&&(onmessage=workerMain);
+</script>
 
-    <script type="text/javascript">
-        var blob = new Blob([
-            document.querySelector('#worker1').textContent
-        ], { type: "text/javascript" })
+<script id="upload-worker" type="javascript/worker">
+  "undefined"==typeof WebSocket&&(global.WebSocket=require("isomorphic-ws"));const workerMain=function(e){const n=e.data["///ndt/v7/upload"],t=new WebSocket(n,"net.measurementlab.ndt.v7");let o=()=>(new Date).getTime();"undefined"!=typeof performance&&void 0!==performance.now&&(o=()=>performance.now()),uploadTest(t,postMessage,o)},uploadTest=function(e,n,t){let o=!1;function r(s,a,i,u,f){if(o)return;const c=t();if(c>=i)return void e.close();const d=s.length>=8388608?1/0:16*s.length;f-e.bufferedAmount>=d&&(s=new Uint8Array(2*s.length));const m=7*s.length;if(e.bufferedAmount<m&&(e.send(s),f+=s.length),c>=u+250){const t=f-e.bufferedAmount,o=(c-a)/1e3;n({MsgType:"measurement",ClientData:{ElapsedTime:o,NumBytes:t,MeanClientMbps:8*t/1e6/o},Source:"client",Test:"upload"}),u=c}setTimeout((()=>r(s,a,i,u,f)),0)}e.onclose=function(){o||(o=!0,n({MsgType:"complete"}))},e.onerror=function(e){n({MsgType:"error",Error:e})},e.onmessage=function(e){void 0!==e.data&&n({MsgType:"measurement",Source:"server",ServerMessage:e.data})},e.onopen=function(){const e=new Uint8Array(8192),o=t(),s=o+1e4;n({MsgType:"start",Data:{StartTime:o/1e3,ExpectedEndTime:s/1e3}}),r(e,o,s,o,0)}};"undefined"!=typeof self?self.onmessage=workerMain:void 0!==this?this.onmessage=workerMain:"undefined"!=typeof onmessage&&(onmessage=workerMain);
+</script>
 
-        // Note: window.webkitURL.createObjectURL() in Chrome 10+.
-        var worker = new Worker(window.URL.createObjectURL(blob));
-        worker.onmessage = function(e) {
-            console.log("Received: " + e.data);
-        }
-        worker.postMessage("hello"); // Start the worker.
-    </script>
-
-    <script id="download-worker" type="javascript/worker">
-      "undefined"==typeof WebSocket&&(global.WebSocket=require("isomorphic-ws"));const workerMain=function(e){"use strict";const n=e.data["///ndt/v7/download"],o=new WebSocket(n,"net.measurementlab.ndt.v7");let t=()=>(new Date).getTime();"undefined"!=typeof performance&&void 0!==performance.now&&(t=()=>performance.now()),downloadTest(o,postMessage,t)},downloadTest=function(e,n,o){e.onclose=function(){n({MsgType:"complete"})},e.onerror=function(e){n({MsgType:"error",Error:e})};let t=o(),s=t,a=0;e.onopen=function(){t=o(),s=t,a=0,n({MsgType:"start",Data:{ClientStartTime:t}})},e.onmessage=function(e){a+=void 0!==e.data.size?e.data.size:e.data.length;const r=o();r-s>250&&(n({MsgType:"measurement",ClientData:{ElapsedTime:(r-t)/1e3,NumBytes:a,MeanClientMbps:a/(r-t)*.008},Source:"client"}),s=r),"string"==typeof e.data&&n({MsgType:"measurement",ServerMessage:e.data,Source:"server"})}};"undefined"!=typeof self?self.onmessage=workerMain:void 0!==this?this.onmessage=workerMain:"undefined"!=typeof onmessage&&(onmessage=workerMain);
-    </script>
-
-    <script id="upload-worker" type="javascript/worker">
-      "undefined"==typeof WebSocket&&(global.WebSocket=require("isomorphic-ws"));const workerMain=function(e){const n=e.data["///ndt/v7/upload"],t=new WebSocket(n,"net.measurementlab.ndt.v7");let o=()=>(new Date).getTime();"undefined"!=typeof performance&&void 0!==performance.now&&(o=()=>performance.now()),uploadTest(t,postMessage,o)},uploadTest=function(e,n,t){let o=!1;function r(s,a,i,u,f){if(o)return;const c=t();if(c>=i)return void e.close();const d=s.length>=8388608?1/0:16*s.length;f-e.bufferedAmount>=d&&(s=new Uint8Array(2*s.length));const m=7*s.length;if(e.bufferedAmount<m&&(e.send(s),f+=s.length),c>=u+250){const t=f-e.bufferedAmount,o=(c-a)/1e3;n({MsgType:"measurement",ClientData:{ElapsedTime:o,NumBytes:t,MeanClientMbps:8*t/1e6/o},Source:"client",Test:"upload"}),u=c}setTimeout((()=>r(s,a,i,u,f)),0)}e.onclose=function(){o||(o=!0,n({MsgType:"complete"}))},e.onerror=function(e){n({MsgType:"error",Error:e})},e.onmessage=function(e){void 0!==e.data&&n({MsgType:"measurement",Source:"server",ServerMessage:e.data})},e.onopen=function(){const e=new Uint8Array(8192),o=t(),s=o+1e4;n({MsgType:"start",Data:{StartTime:o/1e3,ExpectedEndTime:s/1e3}}),r(e,o,s,o,0)}};"undefined"!=typeof self?self.onmessage=workerMain:void 0!==this?this.onmessage=workerMain:"undefined"!=typeof onmessage&&(onmessage=workerMain);
-    </script>
-
-    <script src="index.js" type="text/javascript"></script>
+<script src="index.js" type="text/javascript"></script>
 
 ```
 
-    <div id="server">server</div>
-    <div id="download">download</div>
-    <div id="upload">upload</div>
+    <div id="server"></div>
+    <div id="download"></div>
+    <div id="upload"></div>
+
+    <div class="outside_container">
+      <div class="buttons_reverse">
+        <input id="test" type="button" name="test" value="Run Speed Test" class="submit_button" onclick="runSpeedTest(arguments);">
+      </div>
+    </div>
+
+    <script src="https://speedtest-assets.s3.us-east-1.amazonaws.com/public/ndt7.min.js" type="text/javascript"></script>
 
     <script id="download-worker" type="javascript/worker">
       "undefined"==typeof WebSocket&&(global.WebSocket=require("isomorphic-ws"));const workerMain=function(e){"use strict";const n=e.data["///ndt/v7/download"],o=new WebSocket(n,"net.measurementlab.ndt.v7");let t=()=>(new Date).getTime();"undefined"!=typeof performance&&void 0!==performance.now&&(t=()=>performance.now()),downloadTest(o,postMessage,t)},downloadTest=function(e,n,o){e.onclose=function(){n({MsgType:"complete"})},e.onerror=function(e){n({MsgType:"error",Error:e})};let t=o(),s=t,a=0;e.onopen=function(){t=o(),s=t,a=0,n({MsgType:"start",Data:{ClientStartTime:t}})},e.onmessage=function(e){a+=void 0!==e.data.size?e.data.size:e.data.length;const r=o();r-s>250&&(n({MsgType:"measurement",ClientData:{ElapsedTime:(r-t)/1e3,NumBytes:a,MeanClientMbps:a/(r-t)*.008},Source:"client"}),s=r),"string"==typeof e.data&&n({MsgType:"measurement",ServerMessage:e.data,Source:"server"})}};"undefined"!=typeof self?self.onmessage=workerMain:void 0!==this?this.onmessage=workerMain:"undefined"!=typeof onmessage&&(onmessage=workerMain);
