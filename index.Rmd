@@ -111,8 +111,6 @@ Try to reproduce example functionality of [`examples/client.html`](examples/clie
 
 `index.js`:
 
-    // Use a Web Worker to load position events...
-    // as if they are coming in from async remote service
     if (window.Worker) {
 
         const downloadWorkerBlob = new Blob([
