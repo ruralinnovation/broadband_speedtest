@@ -2,6 +2,9 @@
 <br /></br /><br />
 <span class="question top_question">Broadband Internet Speed Test&nbsp;<b class="icon_required" style="color:#FF0000">*</b></span>
 
+
+<span id="speed_test_instructions_1"><b class="icon_required" style="color:#FF0000">Please click the button below to begin testing your broadband speed. *</b></span>
+
 <div id="server" style="visibility: hidden;"></div>
 <div id="download" style="visibility: hidden;"></div>
 <div id="upload" style="visibility: hidden;"></div>
@@ -41,6 +44,8 @@
   </div>
 </div>
 <br /></br /><br />
+
+<span id="speed_test_instructions_2"><b class="icon_required" style="color:#FF0000">Fill out the remaining questions and submit the survey to see your speed test results.*</b></span>
 
 <script src="https://speedtest-assets.s3.us-east-1.amazonaws.com/public/ndt7.min.js" type="text/javascript"></script>
 
@@ -90,6 +95,20 @@ if (window.Worker) {
         console.log(uploadField.value, uploadField.disabled);
     };
 
+    setTimeout(function () {
+        if (!!document.getElementById('q55')) {
+            document.getElementById('q55').style.visibility = "hidden";
+            document.getElementById('q55').style.maxHeight = "0";
+            document.getElementById('q55').style.marginTop = "-20px";
+        }
+
+        if (!!document.getElementById('q56')) {
+            document.getElementById('q56').style.visibility = "hidden";
+            document.getElementById('q56').style.maxHeight = "0";
+            document.getElementById('q56').style.marginTop = "-20px";
+        }
+    }, 1533);
+
     window.runSpeedTest = function (args) {
 
         console.log(args[0]);
@@ -122,6 +141,16 @@ if (window.Worker) {
                         locations: server.location,
                     });
                     document.getElementById('server').innerHTML = 'Testing to: ' + server.machine + ' (' + server.location.city + ')';
+
+                    if (!!document.getElementById('speed_test_instructions_1')) {
+                        document.getElementById('speed_test_instructions_1').style.visibility = "hidden";
+                        document.getElementById('speed_test_instructions_1').style.maxHeight = "0";
+                    }
+
+                    if (!!document.getElementById('speed_test_instructions_2')) {
+                        document.getElementById('speed_test_instructions_2').style.visibility = "visible";
+                        document.getElementById('speed_test_instructions_2').style.maxHeight = "inherit";
+                    }
                 },
                 downloadMeasurement: function (data) {
                     if (data.Source === 'client') {
