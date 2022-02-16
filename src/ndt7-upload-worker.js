@@ -37,6 +37,7 @@ const uploadTest = function(sock, postMessage, now) {
 
   sock.onmessage = function(ev) {
     if (typeof ev.data !== 'undefined') {
+      console.log("ServerMessage", ev.data);
       postMessage({
         MsgType: 'measurement',
         Source: 'server',

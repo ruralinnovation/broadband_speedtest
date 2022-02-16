@@ -86,26 +86,37 @@ if (window.Worker) {
         document.querySelector('#upload-worker').textContent,
     ], {type: 'text/javascript'});
 
+    const download_uuid = "RESULT_TextField-19";
+    const upload_uuid = "RESULT_TextField-20";
+    const download_input = "RESULT_TextField-21";
+    const upload_input = "RESULT_TextField-22";
+
     document.getElementById("FSForm").onsubmit = function () {
-        var downloadField = document.getElementById('RESULT_TextField-10');
+        var downloadField = document.getElementById(download_input);
         downloadField.disabled = false;
         console.log(downloadField.value, downloadField.disabled);
-        var uploadField = document.getElementById('RESULT_TextField-11');
+        var uploadField = document.getElementById(upload_input);
         uploadField.disabled = false;
         console.log(uploadField.value, uploadField.disabled);
     };
 
     setTimeout(function () {
-        if (!!document.getElementById('q55')) {
-            document.getElementById('q55').style.visibility = "hidden";
-            document.getElementById('q55').style.maxHeight = "0";
-            document.getElementById('q55').style.marginTop = "-20px";
+        // if (!!document.getElementById('q55')) {
+        //     document.getElementById('q55').style.visibility = "hidden";
+        //     document.getElementById('q55').style.maxHeight = "0";
+        //     document.getElementById('q55').style.marginTop = "-20px";
+        // }
+        if (!!document.getElementById(download_input)) {
+            document.getElementById(download_input).disabled = true;
         }
 
-        if (!!document.getElementById('q56')) {
-            document.getElementById('q56').style.visibility = "hidden";
-            document.getElementById('q56').style.maxHeight = "0";
-            document.getElementById('q56').style.marginTop = "-20px";
+        // if (!!document.getElementById('q56')) {
+        //     document.getElementById('q56').style.visibility = "hidden";
+        //     document.getElementById('q56').style.maxHeight = "0";
+        //     document.getElementById('q56').style.marginTop = "-20px";
+        // }
+        if (!!document.getElementById(upload_input)) {
+            document.getElementById(upload_input).disabled = true;
         }
     }, 1533);
 
@@ -162,19 +173,22 @@ if (window.Worker) {
                     // (bytes/second) * (bits/byte) / (megabits/bit) = Mbps
                     const serverBw = data.LastServerMeasurement.BBRInfo.BW * 8 / 1000000;
                     const clientGoodput = data.LastClientMeasurement.MeanClientMbps;
+
                     console.log(
-                        `Download test is complete:
+`Download test is complete:
     Instantaneous server bottleneck bandwidth estimate: ${serverBw} Mbps
     Mean client goodput: ${clientGoodput} Mbps`);
+
+                    // Report download speed
                     document.getElementById('download').innerHTML = 'Download: ' + clientGoodput.toFixed(2) + ' Mb/s';
-                    // Download speed
-                    if (!!document.getElementById('RESULT_TextField-10')) {
-                        document.getElementById('RESULT_TextField-10').value = clientGoodput.toFixed(2);
-                        document.getElementById('RESULT_TextField-10').disabled = true;
+                    if (!!document.getElementById(download_input)) {
+                        delete document.getElementById(download_input).disabled;
+                        document.getElementById(download_input).value = clientGoodput.toFixed(2);
+                        document.getElementById(download_input).disabled = true;
                     }
                     // UUID-download
-                    if (!!document.getElementById('RESULT_TextField-8')) {
-                        document.getElementById('RESULT_TextField-8').value = data.LastServerMeasurement.ConnectionInfo.UUID;
+                    if (!!document.getElementById(download_uuid)) {
+                        document.getElementById(download_uuid).value = data.LastServerMeasurement.ConnectionInfo.UUID;
                     }
                 },
                 uploadMeasurement: function (data) {
@@ -184,24 +198,28 @@ if (window.Worker) {
                     }
                 },
                 uploadComplete: function (data) {
-                    // TODO: used actual upload duration for rate calculation.
-                    // bytes * (bits/byte() * (megabits/bit) * (1/seconds) = Mbps
+                    console.log(data.LastServerMeasurement);
                     const serverBw =
-                        data.LastServerMeasurement.TCPInfo.BytesReceived * 8 / 1000000 / 10;
+                        // data.LastServerMeasurement.TCPInfo.BytesReceived * 8 / 1000000 / 10;
+                        data.LastServerMeasurement.TCPInfo.BytesReceived * 8 /
+                        data.LastServerMeasurement.TCPInfo.ElapsedTime; // = 5.804955182882753 (Mbps?)
                     const clientGoodput = data.LastClientMeasurement.MeanClientMbps;
+
                     console.log(
-                        `Upload test is complete:
+`Upload test is complete:
     Mean server throughput: ${serverBw} Mbps
     Mean client goodput: ${clientGoodput} Mbps`);
-                    document.getElementById('upload').innerHTML = 'Upload: ' + clientGoodput.toFixed(2) + ' Mb/s';
-                    // Upload speed
-                    if (!!document.getElementById('RESULT_TextField-11')) {
-                        document.getElementById('RESULT_TextField-11').value = clientGoodput.toFixed(2);
-                        document.getElementById('RESULT_TextField-11').disabled = true;
+
+                    // Report upload speed
+                    document.getElementById('upload').innerHTML = 'Upload: ' + serverBw.toFixed(2) + ' Mb/s';
+                    if (!!document.getElementById(upload_input)) {
+                        delete document.getElementById(upload_input).disabled;
+                        document.getElementById(upload_input).value = serverBw.toFixed(2);
+                        document.getElementById(upload_input).disabled = true;
                     }
                     // UUID-upload
-                    if (!!document.getElementById('RESULT_TextField-9')) {
-                        document.getElementById('RESULT_TextField-9').value = data.LastServerMeasurement.ConnectionInfo.UUID;
+                    if (!!document.getElementById(upload_uuid)) {
+                        document.getElementById(upload_uuid).value = data.LastServerMeasurement.ConnectionInfo.UUID;
                     }
                     endTestCallback(true);
                 },

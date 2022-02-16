@@ -1,21 +1,22 @@
 ---
 title: "M-Lab's NDT7 js library"
 author: "John Hall"
-date: 11/2/21
-output: html_notebook
+date: "2/7/22"
+output:
+  html_document:
+    df_print: paged
 ---
 
 Try to reproduce example functionality of [`examples/client.html`](examples/client.html) *without* any external Web Worker scripts:
 
 
 ```{=html}
-<div id="server"></div>
-<div id="download"></div>
-<div id="upload"></div>
 
-<div id="server"></div>
-<div id="download"></div>
-<div id="upload"></div>
+<form id="FSForm">
+  <div id="server"></div>
+  <div id="download"></div>
+  <div id="upload"></div>
+</form>
 
 <style type="text/css">
 @keyframes dash {
@@ -87,9 +88,12 @@ Try to reproduce example functionality of [`examples/client.html`](examples/clie
 
 ```
 
-    <div id="server"></div>
-    <div id="download"></div>
-    <div id="upload"></div>
+
+    <form id="FSForm">
+      <div id="server"></div>
+      <div id="download"></div>
+      <div id="upload"></div>
+    </form>
 
     <div class="outside_container">
       <div class="buttons_reverse">

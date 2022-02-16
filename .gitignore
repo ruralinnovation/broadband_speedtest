@@ -1,3 +1,18 @@
+*Rproj*
+.R*
+*.bak
+*.rds
 .idea
+data
+rsconnect
+lib
+logs
 node_modules
-src/test/e2e/*.min.js
+packrat/lib/
+.Rproj.user
+packrat/lib*/
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
